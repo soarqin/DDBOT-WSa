@@ -97,7 +97,7 @@ var allPrivateOperate = [...]string{
 	CleanConcern,
 }
 
-var nonOprateable = [...]string{
+var nonOperateable = [...]string{
 	EnableCommand, DisableCommand, GrantCommand,
 	BlockCommand, LogCommand, PingCommand,
 	WhosyourdaddyCommand, QuitCommand, ModeCommand,
@@ -119,7 +119,7 @@ func CheckCustomPrivateCommand(command string) bool {
 }
 
 func CheckOperateableCommand(command string) bool {
-	return (sliceutil.Contains(allGroupCommand, command) || CheckCustomGroupCommand(command)) && !sliceutil.Contains(nonOprateable, command)
+	return (sliceutil.Contains(allGroupCommand, command) || CheckCustomGroupCommand(command)) && !sliceutil.Contains(nonOperateable, command)
 }
 
 func CombineCommand(command string) string {

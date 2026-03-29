@@ -2,7 +2,6 @@ package DDBOT
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/signal"
 	"path"
@@ -88,7 +87,7 @@ func Run() {
 	if fi, err := os.Stat("application.yaml"); err != nil {
 		if os.IsNotExist(err) {
 			fmt.Println("警告：没有检测到配置文件application.yaml，正在生成，如果是第一次运行，可忽略")
-			if err := ioutil.WriteFile("application.yaml", []byte(exampleConfig), 0755); err != nil {
+			if err := os.WriteFile("application.yaml", []byte(exampleConfig), 0755); err != nil {
 				warn.Warn(fmt.Sprintf("application.yaml生成失败 - %v", err))
 				os.Exit(1)
 			} else {

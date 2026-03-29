@@ -111,13 +111,6 @@ func (l *Lsp) ConcernNotify() {
 							Errorf("notify panic recovered: %v", e)
 					}
 				}()
-				// 如果 groupCode < 0，则将其视为 Telegram 聊天 ID，并仅发送到 Telegram
-				if inotify.GetGroupCode() < 0 {
-					lsptelegram.SendToChat(inotify.GetGroupCode(), m)
-					cfg.NotifyAfterCallback(inotify, nil)
-					return
-				}
-
 				msgs := l.GM(l.SendMsg(m, target))
 				if len(msgs) > 0 {
 					cfg.NotifyAfterCallback(inotify, msgs[0])

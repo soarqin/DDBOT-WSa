@@ -10,12 +10,16 @@ func init() {
 	refreshCookieJar()
 	refreshNavWbi()
 	go func() {
-		for range time.Tick(time.Minute * 60) {
+		ticker := time.NewTicker(time.Minute * 60)
+		defer ticker.Stop()
+		for range ticker.C {
 			refreshCookieJar()
 		}
 	}()
 	go func() {
-		for range time.Tick(2 * time.Minute) {
+		ticker := time.NewTicker(2 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
 			refreshNavWbi()
 		}
 	}()

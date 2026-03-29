@@ -45,7 +45,8 @@ func GetCommandPrefix(commands ...string) string {
 
 var customCommandPrefixAtomic atomic.Value
 
-// ReloadCustomCommandPrefix TODO wtf
+// ReloadCustomCommandPrefix 直接读取 application.yaml 解析 customCommandPrefix，
+// 因为 viper 的 GetStringMapString 对此配置项解析不可靠。
 func ReloadCustomCommandPrefix() {
 	var result map[string]string
 	defer func() {

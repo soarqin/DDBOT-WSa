@@ -24,7 +24,10 @@ var (
 func (tc *TwitCastConcern) getUserName(id string) (*string, error) {
 
 	if data, ok := userCache.Load(id); ok {
-		name := data.(string)
+		name, ok := data.(string)
+		if !ok {
+			return nil, fmt.Errorf("invalid cache data for id %s", id)
+		}
 		return &name, nil
 	}
 
@@ -46,7 +49,10 @@ func (tc *TwitCastConcern) compareAndUpdateUsername(id string, name string) {
 
 	if data, ok := userCache.Load(id); ok {
 
-		cacheName := data.(string)
+		cacheName, ok := data.(string)
+		if !ok {
+			return
+		}
 
 		if name == cacheName { // 名字相同
 			return

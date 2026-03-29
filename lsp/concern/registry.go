@@ -9,7 +9,7 @@ import (
 )
 
 var globalCenter = newConcernCenter()
-var notifyChan = make(chan Notify, 25)
+var notifyChan = make(chan Notify, 200)
 
 type option struct {
 }

@@ -3,7 +3,6 @@ package lsp
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"runtime/debug"
 	"strconv"
 	"sync"
@@ -724,7 +723,9 @@ func (l *Lsp) Serve(bot *bot.Bot) {
 			"template_name": templateName,
 		}
 		logger.Debug("BOT已上线，尝试触发上线提醒模板")
-		_, _ = template.LoadAndExec(templateName, data)
+		if _, err := template.LoadAndExec(templateName, data); err != nil {
+			logger.WithField("template", templateName).Debugf("template exec: %v", err)
+		}
 	})
 
 	bot.BotOfflineEvent.Subscribe(func(qqClient *client.QQClient, event *client.BotOfflineEvent) {
@@ -733,7 +734,9 @@ func (l *Lsp) Serve(bot *bot.Bot) {
 			"template_name": templateName,
 		}
 		logger.Debug("BOT已离线，尝试触发离线提醒模板")
-		_, _ = template.LoadAndExec(templateName, data)
+		if _, err := template.LoadAndExec(templateName, data); err != nil {
+			logger.WithField("template", templateName).Debugf("template exec: %v", err)
+		}
 	})
 
 	bot.BotSendFailedEvent.Subscribe(func(qqClient *client.QQClient, event *client.BotSendFailedEvent) {
@@ -756,7 +759,9 @@ func (l *Lsp) Serve(bot *bot.Bot) {
 			}
 		}
 		logger.Debug("消息多次发送失败，尝试触发提醒模板")
-		_, _ = template.LoadAndExec(templateName, data)
+		if _, err := template.LoadAndExec(templateName, data); err != nil {
+			logger.WithField("template", templateName).Debugf("template exec: %v", err)
+		}
 	})
 }
 
@@ -890,14 +895,27 @@ func (l *Lsp) GetImageFromPool(options ...image_pool.OptionFunc) ([]image_pool.I
 	return l.pool.Get(options...)
 }
 
+func getMessageId(r interface{}) int32 {
+	switch v := r.(type) {
+	case *message.GroupMessage:
+		return v.Id
+	case *message.PrivateMessage:
+		return v.Id
+	default:
+		return -1
+	}
+}
+
 func (l *Lsp) send(msg *message.SendingMessage, target mmsg.Target) interface{} {
 	switch target.TargetType() {
 	case mmsg.TargetGroup:
 		return l.sendGroupMessage(target.TargetCode(), msg)
 	case mmsg.TargetPrivate:
 		return l.sendPrivateMessage(target.TargetCode(), msg)
+	default:
+		logger.Errorf("unknown target type: %v", target.TargetType())
+		return &message.GroupMessage{Id: -1}
 	}
-	panic("unknown target type")
 }
 
 // SendMsg 总是返回至少一个
@@ -915,7 +933,7 @@ func (l *Lsp) SendMsg(m *mmsg.MSG, target mmsg.Target) (res []interface{}) {
 	for idx, msg := range msgs {
 		r := l.send(msg, target)
 		res = append(res, r)
-		if reflect.ValueOf(r).Elem().FieldByName("Id").Int() == -1 {
+		if getMessageId(r) == -1 {
 			break
 		}
 		if idx > 1 {
@@ -928,7 +946,9 @@ func (l *Lsp) SendMsg(m *mmsg.MSG, target mmsg.Target) (res []interface{}) {
 func (l *Lsp) GM(res []interface{}) []*message.GroupMessage {
 	var result []*message.GroupMessage
 	for _, r := range res {
-		result = append(result, r.(*message.GroupMessage))
+		if gm, ok := r.(*message.GroupMessage); ok {
+			result = append(result, gm)
+		}
 	}
 	return result
 }
@@ -936,7 +956,9 @@ func (l *Lsp) GM(res []interface{}) []*message.GroupMessage {
 func (l *Lsp) PM(res []interface{}) []*message.PrivateMessage {
 	var result []*message.PrivateMessage
 	for _, r := range res {
-		result = append(result, r.(*message.PrivateMessage))
+		if pm, ok := r.(*message.PrivateMessage); ok {
+			result = append(result, pm)
+		}
 	}
 	return result
 }

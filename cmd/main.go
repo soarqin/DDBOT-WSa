@@ -88,7 +88,11 @@ func main() {
 
 	if cli.Debug {
 		lsp.Debug = true
-		go http.ListenAndServe("localhost:6060", nil)
+		go func() {
+			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+				fmt.Fprintf(os.Stderr, "pprof server error: %v\n", err)
+			}
+		}()
 	}
 
 	if cli.Play {
