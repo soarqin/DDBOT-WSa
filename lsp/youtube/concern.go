@@ -179,7 +179,7 @@ func (c *Concern) freshInfo(channelId string) (result []*VideoInfo, err error) {
 		log.Errorf("load newInfo failed %v", err)
 		return
 	}
-	if oldInfo.VideoInfo == nil {
+	if oldInfo == nil || oldInfo.VideoInfo == nil {
 		// first load, just notify if living
 		for _, newV := range newInfo.VideoInfo {
 			if newV.IsLive() {
